@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "RISC-V Bare-Metal",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/riscv64-unknown-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "-march=rv64gc",
+                "-mabi=lp64d",
+                "-ffreestanding",
+                "-nostdlib"
+            ]
+        }
+    ],
+    "version": 4
+}
