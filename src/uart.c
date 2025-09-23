@@ -1,43 +1,41 @@
-/*
- * Driver UART tối giản cho máy ảo QEMU 'virt'
- *
- * Giao tiếp với UART được thực hiện thông qua Memory-Mapped I/O (MMIO).
- * Chúng ta sẽ ghi trực tiếp vào các địa chỉ bộ nhớ cụ thể
- * mà QEMU đã dành riêng để điều khiển UART ảo.
- */
+#include "uart.h"
 
-// Địa chỉ cơ sở của UART trên máy ảo QEMU 'virt' là 0x10000000
-#define UART_BASE 0x10000000
-
-// Con trỏ trỏ đến địa chỉ cơ sở của UART.
-// 'volatile' để ngăn trình biên dịch tối ưu hóa (cache) việc đọc/ghi.
-#define UART_REG(reg) (*(volatile unsigned char *)(UART_BASE + reg))
-
-// Thanh ghi dữ liệu truyền (Transmit Data Register)
-#define UART_THR UART_REG(0)
-
-// Thanh ghi trạng thái đường truyền (Line Status Register)
-#define UART_LSR UART_REG(5)
-
-// Bit trong LSR cho biết thanh ghi THR đã trống và sẵn sàng nhận dữ liệu mới
-#define UART_LSR_THR_EMPTY (1 << 5)
-
+// Hàm khởi tạo UART (hiện tại chưa cần làm gì phức tạp)
 void uart_init() {
-    // Trên QEMU, UART thường đã sẵn sàng, không cần cấu hình phức tạp.
-    // Các bước cấu hình baud rate, parity... có thể thêm vào đây cho phần cứng thật.
+    // Trong môi trường QEMU, UART thường đã được cấu hình sẵn.
+    // Nếu làm trên phần cứng thật, chúng ta sẽ cần cài đặt baud rate,
+    // số bit, parity... ở đây bằng cách ghi vào các thanh ghi LCR, DLL, DLM.
 }
 
+// Hàm gửi một ký tự qua UART
 void uart_putc(char c) {
-    // Chờ cho đến khi thanh ghi truyền (THR) trống
-    // Bằng cách liên tục kiểm tra bit thứ 5 của thanh ghi trạng thái (LSR)
-    while ((UART_LSR & UART_LSR_THR_EMPTY) == 0);
+    // --- Sử dụng "Bản Đồ" đã định nghĩa trong uart.h ---
 
-    // Khi đã trống, ghi ký tự vào thanh ghi truyền
-    UART_THR = c;
+    // Chuyển đổi địa chỉ số thành con trỏ để có thể truy cập
+    // 'volatile' báo cho trình biên dịch rằng giá trị này có thể thay đổi
+    // bất ngờ từ bên ngoài, không được tối ưu hóa việc đọc/ghi.
+    volatile uint8_t* lsr = (uint8_t*)UART_LSR; // Thanh ghi Line Status
+    volatile uint8_t* thr = (uint8_t*)UART_THR; // Thanh ghi Transmit Holding
+
+    // Đợi cho đến khi bit "Transmitter Holding Register Empty" (THRE)
+    // trong thanh ghi LSR được bật lên 1.
+    // Điều này đảm bảo rằng bộ truyền đã sẵn sàng nhận dữ liệu mới.
+    // Vòng lặp while này sẽ chạy liên tục cho đến khi điều kiện đúng.
+    while ((*lsr & LSR_TX_EMPTY) == 0) {
+        // Không làm gì cả, chỉ đợi. Đây gọi là polling.
+    }
+
+    // Khi bộ truyền đã sẵn sàng, ghi ký tự cần gửi vào thanh ghi THR.
+    *thr = c;
 }
 
-void uart_puts(const char *s) {
+// Hàm gửi cả một chuỗi ký tự
+void uart_puts(const char* s) {
+    // Lặp qua từng ký tự của chuỗi
     while (*s) {
-        uart_putc(*s++);
+        // Gọi hàm uart_putc để gửi từng ký tự một
+        uart_putc(*s);
+        s++; // Chuyển sang ký tự tiếp theo
     }
 }
+

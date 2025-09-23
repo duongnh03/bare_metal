@@ -1,49 +1,51 @@
 /*
- * Linker script cho chương trình bare-metal RISC-V 64-bit
- * Chạy trên máy ảo QEMU 'virt'
+ * Kịch bản cho Linker (Linker Script)
+ * Nhiệm vụ:
+ * 1. Định nghĩa điểm bắt đầu của chương trình (_start).
+ * 2. Mô tả bản đồ bộ nhớ của hệ thống (chỉ có RAM).
+ * 3. Sắp xếp các section (như .text, .rodata) vào đúng vị trí trong RAM.
+ * 4. Định nghĩa các ký hiệu (symbol) quan trọng, ví dụ như đỉnh của ngăn xếp.
  */
-ENTRY(_start) /* Chỉ định điểm bắt đầu chương trình là nhãn _start */
+
+ENTRY(_start)
 
 MEMORY
 {
-  /* * Máy ảo 'virt' của QEMU cung cấp RAM bắt đầu từ địa chỉ 0x80000000.
-   * Chúng ta sẽ sử dụng 128MB RAM.
-   */
-  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128M /*(gia tri mac dinh va pho bien cua QEMU)*/
+  /* Hệ thống có 128MB RAM bắt đầu từ địa chỉ 0x80000000 */
+  RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 128M
 }
 
 SECTIONS
 {
-  . = ORIGIN(RAM); /* Bắt đầu đặt các section từ đầu vùng RAM (bat buoc) */
-
+  /* Section chứa mã lệnh thực thi */
   .text :
   {
-    *(.text.init) /* Section khởi tạo */
-    *(.text)      /* Các section mã lệnh khác */
+    *(.text.init) /* Đảm bảo mã khởi động nằm ở đầu tiên */
+    *(.text .text.*)
   } > RAM
 
+  /* Section chứa dữ liệu chỉ đọc (hằng số) */
   .rodata :
   {
-    *(.rodata)    /* Section dữ liệu chỉ đọc */
+    *(.rodata .rodata.*)
   } > RAM
 
+  /* Section chứa dữ liệu đã được khởi tạo */
   .data :
   {
-    *(.data)      /* Section dữ liệu đã khởi tạo */
+    *(.data .data.*)
   } > RAM
 
+  /* Section chứa dữ liệu chưa được khởi tạo (sẽ được gán giá trị 0) */
   .bss :
   {
-    *(.bss)       /* Section dữ liệu chưa khởi tạo (sẽ được gán bằng 0) */
+    *(.bss .bss.*)
   } > RAM
 
-  /* ---- GIẢI PHÁP ----: Định nghĩa vị trí đỉnh của ngăn xếp */
-  /* Ngăn xếp sẽ phát triển từ trên xuống dưới, nên chúng ta đặt đỉnh của nó
-   * ở địa chỉ cao nhất của RAM.
+  /*
+   * Định nghĩa một ký hiệu trỏ đến đỉnh của RAM.
+   * Mã assembly khởi động sẽ sử dụng ký hiệu này để thiết lập Stack Pointer.
    */
-  _stack_top = ORIGIN(RAM) + LENGTH(RAM); 
-  /* là một quyết định kiến trúc có chủ đích, dựa trên nguyên tắc cơ bản về cách ngăn xếp phát triển trong bộ 
-   * nhớ, nhằm tạo ra một không gian hoạt động an toàn và tối ưu cho chương trình 
-   */
+  _stack_top = ORIGIN(RAM) + LENGTH(RAM);
 }
 
