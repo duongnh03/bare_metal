@@ -1,13 +1,14 @@
-#include "uart.h" // Sử dụng driver UART mới thay vì semihosting
+#include "uart.h" // Use the new UART driver instead of semihosting
 
 int main() {
-    // Khởi tạo phần cứng UART ảo
+
+    // Initialize virtual UART hardware
     uart_init();
-    
-    // Gửi chuỗi ký tự qua UART
+
+    // Send a string via UART
     uart_puts("Hello kitty \n");
 
-    // Vòng lặp vô tận để dừng CPU sau khi đã hoàn thành công việc.
+    // Infinite loop to halt CPU after finishing work.
     while (1) {
         // Do nothing
     }

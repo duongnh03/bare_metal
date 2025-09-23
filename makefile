@@ -69,6 +69,7 @@ clean:
 run: all
 	@echo "Running with QEMU..."
 	@$(QEMU) $(QEMU_FLAGS) -kernel $(BUILD_DIR)/$(TARGET).elf
+# qemu-system-riscv64 -machine virt -m 128M -nographic -bios none -kernel build/app.elf
 
 # Chạy QEMU ở chế độ debug
 debug: all

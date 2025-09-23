@@ -2,31 +2,31 @@
 .global _start
 
 _start:
-    # 1. Khởi tạo con trỏ ngăn xếp (Stack Pointer - sp)
-    #    'la' (load address) là một lệnh giả (pseudo-instruction)
-    #    nó sẽ được assembler chuyển thành các lệnh auipc và addi
-    #    để nạp địa chỉ của _stack_top vào thanh ghi sp.
+    # 1. Initialize the stack pointer (Stack Pointer - sp)
+    #    'la' (load address) is a pseudo-instruction
+    #    that the assembler will translate into auipc and addi
+    #    to load the address of _stack_top into the sp register.
     la sp, _stack_top
 
-    # 2. Nhảy đến hàm main() trong C
-    #    'jal' (jump and link) sẽ nhảy đến hàm main và lưu địa chỉ
-    #    quay về (return address) vào thanh ghi ra (x1).
+    # 2. Jump to the main() function in C
+    #    'jal' (jump and link) will jump to main and save the
+    #    return address into the ra register (x1).
     jal main
 
-    # 3. Vòng lặp vô tận
-    #    Nếu hàm main có lỡ return, chúng ta sẽ giữ CPU ở đây
-    #    để nó không chạy vào vùng nhớ rác.
+    # 3. Infinite loop
+    #    If main accidentally returns, we keep the CPU here
+    #    so it doesn't run into garbage memory.
 hang:
     j hang
 
-# --- HÀM SEMIHOSTING BẰNG ASSEMBLY ---
-# Đây là hàm mới, được gọi từ C, để thực hiện lời gọi hệ thống.
-# Nó nhận các tham số qua thanh ghi a0 và a1 theo đúng quy ước ABI.
+# --- SEMIHOSTING FUNCTION IN ASSEMBLY ---
+# This is a new function, called from C, to perform a system call.
+# It receives parameters via a0 and a1 registers according to the ABI convention.
 .global semihosting_call
 semihosting_call:
-    # Các tham số đã được C compiler đặt sẵn vào a0 và a1.
-    # Chỉ cần thực hiện lệnh sbreak.
+    # The parameters have already been set in a0 and a1 by the C compiler.
+    # Just execute the sbreak instruction.
     sbreak
-    # Quay trở về hàm C đã gọi nó.
+    # Return to the C function that called it.
     ret
 

@@ -3,17 +3,17 @@
 
 #include <stdint.h>
 
-// --- Bước 1: Định nghĩa "Bản Đồ" Phần Cứng cho UART NS16550A ---
+// --- Step 1: Define Hardware "Map" for UART NS16550A ---
 
-// Địa chỉ cơ sở của khối UART mà QEMU giả lập
+// Base address of UART block that QEMU emulates
 #define UART_BASE 0x10000000
 
-// Các thanh ghi UART, được tính bằng địa chỉ cơ sở + độ lệch (offset)
-// Khi DLAB=0 (chế độ hoạt động bình thường)
+// UART registers, calculated by base address + offset
+// When DLAB=0 (normal operation mode)
 #define UART_RHR (UART_BASE + 0) // Receive Holding Register (read)
 #define UART_THR (UART_BASE + 0) // Transmitter Holding Register (write)
 #define UART_IER (UART_BASE + 1) // Interrupt Enable Register
-// Khi DLAB=1 (chế độ cài đặt baud rate)
+// When DLAB=1 (baud rate setting mode)
 #define UART_DLL (UART_BASE + 0) // Divisor Latch LSB
 #define UART_DLM (UART_BASE + 1) // Divisor Latch MSB
 
@@ -25,17 +25,19 @@
 #define UART_MSR (UART_BASE + 6) // Modem Status Register
 #define UART_SCR (UART_BASE + 7) // Scratch Register
 
-// --- Bước 2: Định nghĩa các Bit Mask cho thanh ghi LSR ---
+// --- Step 2: Define Bit Masks for LSR Register ---
 
-// Bit mask cho Line Status Register (LSR)
-// (1 << 5) tương đương với 0b00100000 hay 0x20
-// Bit này bằng 1 khi bộ đệm truyền đã rỗng và sẵn sàng nhận ký tự mới.
+// Bit mask for Line Status Register (LSR)
+// |  bit7  |  bit6  |  bit5  |  bit4  |  bit3  |  bit2  |  bit1  |  bit0  |
+// |        |  TEMT  |  THRE  |   BI   |   FE   |   PE   |   OE   |   DR   |
+//     0        0        1        0        0       0         0        0
+//                       1 <----------------------------------------------
 #define LSR_TX_EMPTY (1 << 5)
 
-// --- Bước 3: Khai báo các hàm sẽ được định nghĩa trong uart.c ---
+// --- Step 3: Declare the functions that will be defined in uart.c ---
 void uart_init();
 void uart_putc(char c);
-void uart_puts(const char* s); // Thêm hàm puts để tiện sử dụng
+void uart_puts(const char* s); // Add puts function for convenience
 
 #endif // UART_H
 

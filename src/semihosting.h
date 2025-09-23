@@ -1,23 +1,23 @@
 #ifndef SEMIHOSTING_H
 #define SEMIHOSTING_H
 
-// --- BƯỚC 1: KHAI BÁO HÀM ASSEMBLY BÊN NGOÀI ---
-// Khai báo sự tồn tại của hàm 'semihosting_call' được viết trong file start.S.
-// Hàm này là cầu nối an toàn nhất để thực hiện lệnh 'sbreak'.
+// --- STEP 1: DECLARE EXTERNAL ASSEMBLY FUNCTION ---
+// Declare the existence of the 'semihosting_call' function written in start.S.
+// This function is the safest bridge to execute the 'sbreak' instruction.
 extern long semihosting_call(long op_code, const void* arg_block);
 
 
-// --- BƯỚC 2: ĐỊNH NGHĨA HÀM WRAPPER TRONG C (PHIÊN BẢN GỠ LỖI) ---
+// --- STEP 2: DEFINE WRAPPER FUNCTION IN C (DEBUG VERSION) ---
 
-// Định nghĩa mã lệnh cho thao tác in MỘT KÝ TỰ (SYS_WRITEC)
-// Đây là thao tác semihosting đơn giản nhất.
+// Define the opcode for printing ONE CHARACTER (SYS_WRITEC)
+// This is the simplest semihosting operation.
 #define SYS_WRITEC 0x03
 
-// Hàm này chuẩn bị các tham số và gọi hàm assembly 'semihosting_call'
-// để in MỘT ký tự duy nhất.
+// This function prepares the parameters and calls the assembly 'semihosting_call'
+// to print ONE single character.
 static inline void semihosting_putc(char c) {
-    // Đối với SYS_WRITEC, tham số thứ hai (thanh ghi a1) phải là
-    // địa chỉ của ký tự cần in.
+    // For SYS_WRITEC, the second parameter (register a1) must be
+    // the address of the character to print.
     semihosting_call(SYS_WRITEC, &c);
 }
 
